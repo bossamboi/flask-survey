@@ -9,43 +9,52 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-responses = []
-
+RESPONSES_KEY = "responses"
 
 
 @app.get("/")
 def show_start():
     """Shows survey start page"""
+    session[RESPONSES_KEY] = []
+    session["survey_complete"] = False
 
-    return render_template("survey_start.html", title = survey.title, instructions = survey.instructions, q_id=0)
+    return render_template("survey_start.html", title = survey.title,
+    instructions = survey.instructions, q_id=0)
 
 @app.get("/questions/<int:q_id>")
 def show_question(q_id):
-    """Shows questions"""
+    """Shows questions and checks if survey is completed"""
+    if session["survey_complete"] == True:
+        return redirect("/completion")
+    elif session["survey_complete"] == False and len(session[RESPONSES_KEY]) == q_id:
+        curr_question = survey.questions[len(session[RESPONSES_KEY])]
+        return render_template("question.html", question = curr_question)
+    else:
+        return redirect(f"/questions/{len(session[RESPONSES_KEY])}")
 
-    curr_question = survey.questions[q_id]
-
-    return render_template("question.html", question = curr_question)
 
 # @app.VERB(f"/questions/{curr_question}")
 
 
 @app.post("/answer")
 def log_answer():
-    """logs answer in responses list and redirects to next"""
+    """Logs answer in responses list and redirects to next"""
 
     value = request.form.get("answer")
-    responses.append(value)
+    answers = session[RESPONSES_KEY]
+    answers.append(value)
+    session[RESPONSES_KEY] = answers
 
 
-    if len(responses) == len(survey.questions):
+    if len(answers) != len(survey.questions):
+        return redirect(f"/questions/{len(answers)}")
+    else:
+        session["survey_complete"] = True
         return redirect("/completion")
-
-    return redirect(f"/questions/{len(responses)}")
 
 
 @app.get("/completion")
 def say_thanks():
-    """says thank you for completing survey"""
+    """Says thank you for completing survey"""
 
     return render_template("completion.html")
