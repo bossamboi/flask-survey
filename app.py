@@ -17,17 +17,13 @@ responses = []
 def show_start():
     """Shows survey start page"""
 
+    return render_template("survey_start.html", title = survey.title, instructions = survey.instructions, q_id=0)
 
-
-
-    return render_template("survey_start.html", title = survey.title, instructions = survey.instructions)
-
-@app.post("/begin")
-def show_question():
+@app.get("/questions/<int:q_id>")
+def show_question(q_id):
     """Shows questions"""
 
-    curr_question = survey.questions[0]
-
+    curr_question = survey.questions[q_id]
 
     return render_template("question.html", question = curr_question)
 
@@ -40,7 +36,16 @@ def log_answer():
 
     value = request.form.get("answer")
     responses.append(value)
-    print('value=', value)
-    print('responses=', responses)
 
-    return 
+
+    if len(responses) == len(survey.questions):
+        return redirect("/completion")
+
+    return redirect(f"/questions/{len(responses)}")
+
+
+@app.get("/completion")
+def say_thanks():
+    """says thank you for completing survey"""
+
+    return render_template("completion.html")
