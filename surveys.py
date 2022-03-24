@@ -30,6 +30,10 @@ class Survey:
         self.title = title
         self.instructions = instructions
         self.questions = questions
+    
+    def __repr__(self):
+        return f"Survey: title = {self.title}"
+
 
 
 satisfaction_survey = Survey(
