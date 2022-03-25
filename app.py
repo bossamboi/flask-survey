@@ -18,8 +18,12 @@ def show_start():
     session[RESPONSES_KEY] = []
     session["survey_complete"] = False
 
-    return render_template("survey_start.html", title = survey.title,
-    instructions = survey.instructions, q_id=0)
+    return render_template(
+        "survey_start.html", 
+        title = survey.title,
+        instructions = survey.instructions, 
+        q_id=0
+        )
 
 @app.get("/questions/<int:q_id>")
 def show_question(q_id):
@@ -30,6 +34,7 @@ def show_question(q_id):
         curr_question = survey.questions[len(session[RESPONSES_KEY])]
         return render_template("question.html", question = curr_question)
     else:
+        flash('STOP TRYING TO ACCESS QUESTIONS OUT OF ORDER!')
         return redirect(f"/questions/{len(session[RESPONSES_KEY])}")
 
 
